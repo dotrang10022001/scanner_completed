@@ -111,13 +111,23 @@ Token *getToken(void)
     ln = lineNo;
     cn = colNo;
     cnt = 0;
+    int hasError = 0;
     while(charCodes[currentChar] == CHAR_LETTER || charCodes[currentChar] == CHAR_DIGIT){
-      if(cnt >= MAX_IDENT_LEN) error(ERR_IDENTTOOLONG, ln, cn);
+      if(cnt >= MAX_IDENT_LEN) {
+        error(ERR_IDENTTOOLONG, ln, cn);
+        hasError = 1;
+        break;
+      }
       str[cnt++] = (char)currentChar;
       readChar();
     }
     str[cnt] = '\0';
-    state = 4;
+    if(hasError == 1){
+      while(charCodes[currentChar] == CHAR_LETTER || charCodes[currentChar] == CHAR_DIGIT){
+        readChar();
+      }
+      state = 0;
+    } else state = 4;
     return getToken();
   case 4:
     tokenType = checkKeyword(str);
