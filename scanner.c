@@ -155,20 +155,50 @@ Token *getToken(void)
   case 7:
     ln = lineNo;
     cn = colNo;
-    cnt = 0;
-    while(charCodes[currentChar] == CHAR_DIGIT){
-      str[cnt++] = (char)currentChar;
+    // Bỏ qua chuỗi số 0 liên tiếp ở đầu
+    while(charCodes[currentChar] == CHAR_DIGIT && (char)currentChar == '0'){
       readChar();
     }
-    str[cnt] = '\0';
-    state = 8;
+    cnt = 0;
+    int isError = 0;
+    // Nếu ký tự tiếp theo không phải số
+    if(charCodes[currentChar] != CHAR_DIGIT){
+      str[cnt++] = '0';
+      str[cnt] = '\0';
+    }else{
+      // Xử lý chuỗi số tiếp theo
+      while(charCodes[currentChar] == CHAR_DIGIT){
+        if(cnt >= MAX_NUMBER_LEN) {
+          error(ERR_NUMBERTOOLONG, ln, cn);
+          isError = 1;
+          break;
+        }
+        str[cnt++] = (char)currentChar;
+        readChar();
+      }
+      str[cnt] = '\0';
+      if(cnt == MAX_NUMBER_LEN && isError == 0){
+        char int_max_str[MAX_NUMBER_LEN];
+        snprintf(int_max_str, sizeof(int_max_str), "%d", INT_MAX);
+        if(strcmp(int_max_str, str) < 0){
+          error(ERR_NUMBERTOOLONG, ln, cn);
+          isError = 1;
+        }
+      }
+    }
+    if(isError == 1){
+      while(charCodes[currentChar] == CHAR_DIGIT){
+        readChar();
+      }
+      state = 0;
+    } else state = 8;
     return getToken();
   case 8:
     token = makeToken(TK_NUMBER, ln, cn);
-    for(int i=0; i<MAX_IDENT_LEN + 1; i++){
+    for(int i=0; i<cnt; i++){
       token->string[i] = str[i];
-      if(str[i] == '\0') break;
     }
+    token->string[cnt] = '\0';
     token->value = atoi(token->string);
     state = 0;
     return token;
