@@ -179,7 +179,7 @@ Token *getToken(void)
       str[cnt] = '\0';
       if(cnt == MAX_NUMBER_LEN && isError == 0){
         char int_max_str[MAX_NUMBER_LEN];
-        snprintf(int_max_str, sizeof(int_max_str), "%d", INT_MAX);
+        snprintf(int_max_str, sizeof(int_max_str) + 1, "%d", INT_MAX);
         if(strcmp(int_max_str, str) < 0){
           error(ERR_NUMBERTOOLONG, ln, cn);
           isError = 1;
